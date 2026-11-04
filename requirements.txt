@@ -1,0 +1,10 @@
+streamlit
+pandas
+numpy
+scikit-learn
+joblib
+xarray
+matplotlib
+netCDF4
+plotly
+geopandas
