@@ -29,7 +29,7 @@ The project combines climate data preprocessing, statistical analysis, dimension
 
 ## Live Demo
 
-**Streamlit application:** [Open the application](https://brunei-rainfall-predictor.streamlit.app/))
+**Streamlit application:** [Open the application](https://brunei-rainfall-predictor.streamlit.app/)
 
 ### Application features
 
