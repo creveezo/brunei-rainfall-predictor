@@ -31,8 +31,6 @@ The project combines climate data preprocessing, statistical analysis, dimension
 
 **Streamlit application:** [Open the application](https://brunei-rainfall-predictor.streamlit.app/)
 
-### Application features
-
 The application currently provides two modes:
 
 - **Upload my data:** Upload a CSV file containing the required input features and generate predictions.
@@ -163,11 +161,11 @@ The input features are standardized using a fitted scaler.
 
 | Hyperparameter | Value |
 |---|---|
-| n_estimators | 100 |
-| max_depth | 20| 
-| min_samples_split | 2 |
-| min_samples_leaf | 4 | 
-| max_features | 0.7 |
+| `n_estimators` | 100 |
+| `max_depth` | 20| 
+| `min_samples_split` | 2 |
+| `min_samples_leaf` | 4 | 
+| `max_features` | 0.7 |
 
 ### 5. Model Evaluation
 
@@ -180,6 +178,12 @@ The following metrics are used:
 | RMSE | 621.434 |
 | MAE | 507.189 |
 | R² | 0.071 |
+
+---
+
+## Notebooks
+
+`notebooks` directory contains python notebooks with the code, preprocessing each nc dataset, turning it into csv dataset and model training. 
 
 ---
 
@@ -241,6 +245,12 @@ brunei-rainfall-predictor/
 │   ├── evaluate_model.py
 │   ├── prepare_features.py
 │   └── reconstruct_rainfall_map.py
+│ 
+├── notebooks/
+│   ├── MSWEP_preprocessing.ipynb
+│   ├── SST_preprocessing.ipynb
+│   ├── dataset_creation.ipynb
+│   └── training_and_evaluating_models.ipynb
 │
 ├── app.py
 ├── requirements.txt
