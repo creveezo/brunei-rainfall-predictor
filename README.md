@@ -3,7 +3,7 @@
 **An interactive machine learning application for predicting monthly precipitation anomalies in Brunei using sea surface temperature (SST) patterns in Indo-Pacific region.**
 
 [Presentation slides](https://docs.google.com/presentation/d/1o7RIvhFlEYOCF7T0qPuWmuF15TgKgzIOC_xi7yb0e5k/edit?usp=sharing)
-[Application]([YOUR_STREAMLIT_APP_URL](https://brunei-rainfall-predictor.streamlit.app/))
+[Application]([YOUR_STREAMLIT_APP_URL](https://brunei-rainfall-predictor.streamlit.app/)
 
 ---
 
@@ -176,7 +176,7 @@ Model performance is evaluated on a held-out test dataset. The current evaluatio
 The following metrics are used:
 
 | Metric | Result |
-|---|---|---|
+|---|---|
 | RMSE | 621.434 |
 | MAE | 507.189 |
 | R² | 0.071 |
