@@ -250,12 +250,6 @@ brunei-rainfall-predictor/
 
 ## Installation
 
-### Requirements
-
-- Python 3.10 or later (adjust to the version used for development).
-- Git.
-- pip.
-
 ### 1. Clone the repository
 
 ```bash
