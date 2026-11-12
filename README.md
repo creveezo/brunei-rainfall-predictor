@@ -17,11 +17,14 @@ The application uses principal components derived from SST data, together with s
 
 The project combines climate data preprocessing, statistical analysis, dimensionality reduction, machine learning, and interactive data visualization.
 
+### The aim of the project
+
+Using Indo-Pacific SST anomalies predict anomalies in precipitation in Brunei.
+
 ### Main objectives
 
-- Process and analyze historical precipitation and sea surface temperature data.
+- Process historical precipitation and sea surface temperature data.
 - Identify major spatial patterns of climate variability using Empirical Orthogonal Function (EOF) analysis.
-- Investigate relationships between oceanic SST variability and precipitation anomalies in Brunei.
 - Develop a machine learning model for predicting precipitation PC1.
 - Provide an interactive interface for exploring data and visualizing model predictions.
 
@@ -54,11 +57,11 @@ The application includes:
 
 The project focuses on representing large-scale oceanic variability through a relatively small number of principal components and examining their relationship with local precipitation patterns.
 
-The prediction target is the first principal component of Brunei precipitation anomalies.
+The prediction target is the anomaly of the first principal component of Brunei precipitation anomalies. I decided, that first PC is enough, because its explained variance is 86.7%. By "anomaly", I mean the deviation of the temperature/pretisipation from the average value for that month. For exalple, if in September 2020 raifall was 20mm, in Sep 2021 it was 25mm, and in Sep 2022 - 30mm, then the average for September is 25mm. And if in September 2023 rainfall is predicted to be 34mm, then my model 
 
 ---
 
-## Data Sources
+## Datasets
 
 The project uses historical climate datasets representing precipitation over Brunei and sea surface temperatures across the Indian and Pacific Oceans.
 
@@ -121,9 +124,7 @@ Stages of data preprocessing for both datasets are described above.
 
 ### 2. EOF Analysis and Dimensionality Reduction
 
-Empirical Orthogonal Function (EOF) analysis is used to identify dominant spatial patterns of variability in the climate datasets.
-
-The decomposition is performed using Singular Value Decomposition (SVD).
+Empirical Orthogonal Function (EOF) analysis is used to identify dominant spatial patterns of variability in the climate datasets. The decomposition is performed using Singular Value Decomposition (SVD).
 
 The analysis produces:
 
@@ -151,7 +152,41 @@ The current model input consists of:
 
 The prediction target is precipitation MSWEP PC1.
 
-### 4. Machine Learning Model
+### 4. Series of experiment
+
+Following models were considered for predicting the target:
+
+1. Baseline.
+   Predicts zeros for every target value.
+2. Linear regression.
+   I used GridSearch to choose the best regularization and alpha-value. (no reg, L1, L2, elasticNet)
+3. Random Forest.
+   GridSearch was used to find the best parameters.
+4. Gradient Boosting.
+   GridSearch was used to find the best parameters.
+5. Multi-Layered Perceptron.
+   Simple model with two hidden layers and ReLU activation function.
+
+MAE was chosen as the main metric for training, as it's less
+
+### 5. Model training
+
+Model performance is evaluated on a held-out test dataset. The evaluation setup uses the final 60 months (2021–2025) as the test period.
+
+The following metrics are used: RMSE, MAE, R²
+
+| Model | MAE | RMSE | R² |
+|---|---|---|---|
+| Baseline | 537.52 | 683.42 | -0.12 |
+| LinReg | 515.07 | 652.75 | -0.03 |
+| Random Forest | 507.19 | 621.43 | 0.071 |
+| Gradient Boosting | 514.99 | 640.79 | 0.01 |
+| MLP | 543.12 | 641.17 | 0.01 |
+
+Random forest turns out to be the best model according to all three metrics. Thus it was chosen as the main model for deployment.
+
+
+### 6. Chosen machine learning model
 
 The input features are standardized using a fitted scaler.
 
@@ -167,23 +202,11 @@ The input features are standardized using a fitted scaler.
 | `min_samples_leaf` | 4 | 
 | `max_features` | 0.7 |
 
-### 5. Model Evaluation
-
-Model performance is evaluated on a held-out test dataset. The current evaluation setup uses the final 60 months (2021–2025) as the test period.
-
-The following metrics are used:
-
-| Metric | Result |
-|---|---|
-| RMSE | 621.434 |
-| MAE | 507.189 |
-| R² | 0.071 |
-
 ---
 
 ## Notebooks
 
-`notebooks` directory contains python notebooks with the code, preprocessing each nc dataset, turning it into csv dataset and model training. 
+`notebooks` directory contains python notebooks with the code, preprocessing each `.nc` dataset, turning it into `.csv` dataset and model training. 
 
 ---
 
