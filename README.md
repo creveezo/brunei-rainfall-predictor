@@ -19,13 +19,13 @@ The project combines climate data preprocessing, statistical analysis, dimension
 
 ### The aim of the project
 
-Using Indo-Pacific SST anomalies predict anomalies in precipitation in Brunei.
+The aim of this project is to use Indo-Pacific sea surface temperature (SST) anomalies to predict monthly precipitation anomalies in Brunei.
 
 ### Main objectives
 
 - Process historical precipitation and sea surface temperature data.
 - Identify major spatial patterns of climate variability using Empirical Orthogonal Function (EOF) analysis.
-- Develop a machine learning model for predicting precipitation PC1.
+- Develop and evaluate machine learning models to predict the first principal component (PC1) of Brunei precipitation anomalies.
 - Provide an interactive interface for exploring data and visualizing model predictions.
 
 ---
@@ -57,7 +57,9 @@ The application includes:
 
 The project focuses on representing large-scale oceanic variability through a relatively small number of principal components and examining their relationship with local precipitation patterns.
 
-The prediction target is the anomaly of the first principal component of Brunei precipitation anomalies. I decided, that first PC is enough, because its explained variance is 86.7%. By "anomaly", I mean the deviation of the temperature/pretisipation from the average value for that month. For exalple, if in September 2020 raifall was 20mm, in Sep 2021 it was 25mm, and in Sep 2022 - 30mm, then the average for September is 25mm. And if in September 2023 rainfall is predicted to be 34mm, then my model 
+The prediction target is the first principal component (PC1) of the Brunei precipitation anomaly field. Precipitation anomalies are calculated relative to the climatological mean for the corresponding calendar month. For example, September precipitation is compared with the long-term average for September, rather than with the annual average. EOF analysis is then used to identify the dominant spatial patterns of precipitation variability. The first principal component represents the temporal evolution of the leading spatial pattern. 
+
+The first EOF mode explains 86.7% of the total variance in the precipitation anomaly field, which motivates using PC1 as the prediction target.
 
 ---
 
@@ -74,11 +76,10 @@ The preprocessing workflow includes:
 1. Reading daily precipitation data.
 2. Applying a Brunei land mask.
 3. Aggregating daily precipitation observations into monthly values.
-4. Calculating calendar-month climatology.
-5. Computing monthly precipitation anomalies.
-6. Removing linear trends.
-7. Applying latitude-based area weighting.
-8. Performing EOF analysis using Singular Value Decomposition (SVD).
+4. Removing linear trends.
+5. Computing monthly precipitation anomalies by removing calendar-month climatology.
+6. Applying latitude-based area weighting.
+7. Performing EOF analysis using Singular Value Decomposition (SVD).
 
 The precipitation analysis is restricted to grid cells within the Brunei land mask.
 
@@ -111,8 +112,10 @@ The preprocessing workflow includes:
 | Variable | Sea Surface Temperature (SST) |
 | Study regions | Indian and Pacific Oceans |
 | Temporal coverage | 539 months |
-| Spatial resolution | 259,200 grid points |
+| Grid dimensions | 259,200 grid points |
 | Number of retained components | 6 |
+
+Since the precipitation and SST datasets have different temporal coverage, they are aligned by calendar month before constructing the model dataset. Only months available in both datasets are retained.
 
 ---
 
@@ -132,8 +135,7 @@ The analysis produces:
 - **Principal Components (PCs):** Time series describing how strongly each spatial pattern is expressed over time.
 - **Explained variance:** The proportion of total variability represented by each mode.
 
-The EOF mode can be multiplied by the corresponding PC1 value to reconstruct the spatial contribution of that mode to the precipitation anomaly field.
-
+The spatial contribution of an EOF mode at a given time can be reconstructed by multiplying its spatial pattern by the corresponding principal component value.
 
 ### 3. Feature Engineering
 
@@ -150,16 +152,18 @@ The current model input consists of:
 | `month_sin` | Sine transformation of the target month |
 | `month_cos` | Cosine transformation of the target month |
 
-The prediction target is precipitation MSWEP PC1.
+The model uses six SST principal components and two seasonal features. The seasonal features (month_sin and month_cos) are derived from the target month during feature preparation.
 
-### 4. Series of experiment
+The prediction target is the first principal component (PC1) of the MSWEP precipitation anomaly field.
+
+### 4. Model Experiments
 
 Following models were considered for predicting the target:
 
 1. Baseline.
    Predicts zeros for every target value.
 2. Linear regression.
-   I used GridSearch to choose the best regularization and alpha-value. (no reg, L1, L2, elasticNet)
+   Grid search was used to select the regularization method (none, L1, L2, or Elastic Net) and its corresponding hyperparameters.
 3. Random Forest.
    GridSearch was used to find the best parameters.
 4. Gradient Boosting.
@@ -167,11 +171,11 @@ Following models were considered for predicting the target:
 5. Multi-Layered Perceptron.
    Simple model with two hidden layers and ReLU activation function.
 
-MAE was chosen as the main metric for training, as it's less
+MAE was selected as the primary metric for model selection and as a loss function because it measures the average absolute prediction error and is less sensitive to large errors than RMSE.
 
 ### 5. Model training
 
-Model performance is evaluated on a held-out test dataset. The evaluation setup uses the final 60 months (2021–2025) as the test period.
+The final 60 months (2021–2025) were reserved as a held-out test set. Model selection and hyperparameter tuning were performed using time-series cross-validation on the training data. No separate validation set was created.
 
 The following metrics are used: RMSE, MAE, R²
 
@@ -183,8 +187,7 @@ The following metrics are used: RMSE, MAE, R²
 | Gradient Boosting | 514.99 | 640.79 | 0.01 |
 | MLP | 543.12 | 641.17 | 0.01 |
 
-Random forest turns out to be the best model according to all three metrics. Thus it was chosen as the main model for deployment.
-
+Random Forest achieved the best performance among the evaluated models, obtaining the lowest MAE (507.19) and RMSE (621.43), as well as the highest R² (0.071). Compared with the zero baseline, it reduced MAE by approximately 5.6% and RMSE by 9.1%. However, the relatively low R² indicates that the model's predictive skill on the held-out test period remains limited.
 
 ### 6. Chosen machine learning model
 
@@ -204,6 +207,14 @@ The input features are standardized using a fitted scaler.
 
 ---
 
+### Key Results
+- Random Forest achieved the best performance among the five evaluated models on the held-out 2021–2025 test period.
+- Compared with the zero baseline, Random Forest reduced MAE by approximately 5.6% and RMSE by 9.1%.
+- The model achieved a positive R² of 0.071, suggesting that Indo-Pacific SST principal components contain some information relevant to predicting Brunei precipitation anomalies.
+- However, the overall predictive performance remains modest, indicating that SST-based predictors alone may not be sufficient to accurately capture local precipitation variability.
+
+---
+
 ## Notebooks
 
 | Notebook | Description |
@@ -219,7 +230,7 @@ The notebooks provide a reproducible overview of the analytical workflow.
 
 ## Application
 
-The application is built with Streamlit and provides an interactive interface for generating and exploring precipitation predictions.
+The application is built with Streamlit and provides an interactive interface for generating and exploring precipitation predictions. The trained model generates predictions of the first principal component (PC1) of the precipitation anomaly field.
 
 ### Prediction workflow
 
@@ -239,7 +250,7 @@ target_month,sst_pc1,sst_pc2,sst_pc3,sst_pc4,sst_pc5,sst_pc6
 2025-01-01,0.12,-0.35,0.21,0.08,-0.14,0.31
 2025-02-01,0.18,-0.22,0.16,0.11,-0.09,0.27
 ```
-
+`target_month` specifies the month for which the precipitation anomaly is being predicted. No lags are used in this project.
 The example values above are illustrative and do not represent actual observations.
 
 The application derives `month_sin` and `month_cos` from `target_month`.
@@ -248,7 +259,7 @@ The application derives `month_sin` and `month_cos` from `target_month`.
 
 The application includes:
 
-- Interactive maps of reconstructed precipitation anomalies.
+- Spatial maps of predicted precipitation anomalies: reconstructed using the predicted precipitation PC1 and the corresponding first EOF spatial pattern.
 - Numerical values displayed on maps (optional).
 - Actual vs. predicted precipitation PC1 time series.
 - Comparison tables containing observed values, predictions, and prediction errors.
@@ -293,7 +304,7 @@ brunei-rainfall-predictor/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/USERNAME/brunei-rainfall-predictor.git
+git clone https://github.com/creveezo/brunei-rainfall-predictor.git
 
 cd brunei-rainfall-predictor
 ```
@@ -341,6 +352,8 @@ Several limitations should be considered when interpreting the results:
 - Climate variability is influenced by multiple interacting atmospheric and oceanic processes that may not be fully represented by the selected predictors.
 - Model performance is evaluated on a specific historical test period and may not generalize equally well to other climatic periods.
 - The quality of the results depends on the completeness, consistency, and temporal alignment of the underlying datasets.
+he relatively short temporal coverage of the datasets limits the amount of historical information available for model training.
+- Performance on a single historical test period does not guarantee generalization to other climatic conditions.
 
 ---
 
@@ -351,6 +364,7 @@ Planned improvements include:
 - Adding a dedicated data exploration dashboard.
 - Providing more detailed descriptive statistics and visualizations of precipitation and SST datasets.
 - Exploring alternative feature selection and dimensionality reduction approaches.
+- Exploring additional climate predictors, including atmospheric variables.
 
 ---
 
