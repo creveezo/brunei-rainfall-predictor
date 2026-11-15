@@ -1,6 +1,6 @@
 # Brunei Rainfall Predictor
 
-**An interactive machine learning application for predicting monthly precipitation anomalies in Brunei using sea surface temperature (SST) patterns in Indo-Pacific region.**
+**An interactive machine learning application for predicting monthly precipitation anomalies in Brunei using sea surface temperature (SST) patterns in the    Indo-Pacific region.**
 
 [Presentation slides](https://docs.google.com/presentation/d/1o7RIvhFlEYOCF7T0qPuWmuF15TgKgzIOC_xi7yb0e5k/edit?usp=sharing)
 [Application](https://brunei-rainfall-predictor.streamlit.app/)
@@ -206,7 +206,14 @@ The input features are standardized using a fitted scaler.
 
 ## Notebooks
 
-`notebooks` directory contains python notebooks with the code, preprocessing each `.nc` dataset, turning it into `.csv` dataset and model training. 
+| Notebook | Description |
+|---|---|
+| `MSWEP_preprocessing.ipynb` | Preprocessing of precipitation data and EOF decomposition |
+| `SST_preprocessing.ipynb` | SST preprocessing and EOF decomposition |
+| `dataset_creation.ipynb` | Temporal alignment and construction of the model dataset |
+| `training_and_evaluating_models.ipynb` | Model training, hyperparameter optimization, and evaluation |
+
+The notebooks provide a reproducible overview of the analytical workflow.
 
 ---
 
