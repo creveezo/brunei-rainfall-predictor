@@ -8,3 +8,4 @@ matplotlib
 netCDF4
 plotly
 geopandas
+shapely
