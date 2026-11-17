@@ -168,7 +168,7 @@ Following models were considered for predicting the target:
    GridSearch was used to find the best parameters.
 4. Gradient Boosting.
    GridSearch was used to find the best parameters.
-5. Multi-Layered Perceptron.
+5. Multi-Layer Perceptron.
    Simple model with two hidden layers and ReLU activation function.
 
 MAE was selected as the primary metric for model selection and as a loss function because it measures the average absolute prediction error and is less sensitive to large errors than RMSE.
@@ -177,7 +177,7 @@ MAE was selected as the primary metric for model selection and as a loss functio
 
 The final 60 months (2021–2025) were reserved as a held-out test set. Model selection and hyperparameter tuning were performed using time-series cross-validation on the training data. No separate validation set was created.
 
-The following metrics are used: RMSE, MAE, R²
+The following metrics are used: MAE, RMSE, R²
 
 | Model | MAE | RMSE | R² |
 |---|---|---|---|
@@ -352,7 +352,7 @@ Several limitations should be considered when interpreting the results:
 - Climate variability is influenced by multiple interacting atmospheric and oceanic processes that may not be fully represented by the selected predictors.
 - Model performance is evaluated on a specific historical test period and may not generalize equally well to other climatic periods.
 - The quality of the results depends on the completeness, consistency, and temporal alignment of the underlying datasets.
-he relatively short temporal coverage of the datasets limits the amount of historical information available for model training.
+The relatively short temporal coverage of the datasets limits the amount of historical information available for model training.
 - Performance on a single historical test period does not guarantee generalization to other climatic conditions.
 
 ---
