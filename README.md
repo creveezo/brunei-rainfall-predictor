@@ -47,7 +47,7 @@ The application includes:
 - Model evaluation metrics.
 - Downloadable prediction results.
 
-*An interactive data exploration dashboard is planned as a future improvement.*
+The **Data Explorer** includes sample maps, EOF patterns, principal component time series, explained-variance charts, and SST–precipitation correlations. Use the sidebar to switch between Data Explorer and Rainfall Prediction.
 
 ---
 
@@ -274,6 +274,12 @@ brunei-rainfall-predictor/
 ├── data/
 │   ├── X_test.csv
 │   ├── y_true.csv
+│   ├── mswep_2024.nc, sst_2024.nc  # sample maps
+│   ├── *_variance_truncation.csv   # explained variance
+│   ├── *PC_train.nc, *PC_test.nc   # principal components
+│   ├── sst_eof_svd_results.nc      # SST EOFs and PCs
+│   ├── brunei_landmask_used_for_EOF_on_mswep_grid.nc
+│   ├── world_countries.geojson
 │   ├── mswep_brunei_landmask_EOF_patterns_10_fullgrid.nc
 │   ├── brunei.geojson
 │   └── malaysia.geojson
@@ -283,6 +289,7 @@ brunei-rainfall-predictor/
 │   └── scaler.pkl
 │
 ├── extra_functions/
+│   ├── datasets_visualisation.py
 │   ├── evaluate_model.py
 │   ├── prepare_features.py
 │   └── reconstruct_rainfall_map.py
@@ -354,6 +361,8 @@ Several limitations should be considered when interpreting the results:
 - The quality of the results depends on the completeness, consistency, and temporal alignment of the underlying datasets.
 The relatively short temporal coverage of the datasets limits the amount of historical information available for model training.
 - Performance on a single historical test period does not guarantee generalization to other climatic conditions.
+- The SST features are from the same month as the target, so the project does not demonstrate an advance forecast. Raw SST must be converted to compatible PCs before upload.
+
 
 ---
 
@@ -361,8 +370,6 @@ The relatively short temporal coverage of the datasets limits the amount of hist
 
 Planned improvements include:
 
-- Adding a dedicated data exploration dashboard.
-- Providing more detailed descriptive statistics and visualizations of precipitation and SST datasets.
 - Exploring alternative feature selection and dimensionality reduction approaches.
 - Exploring additional climate predictors, including atmospheric variables.
 
