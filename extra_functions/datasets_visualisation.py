@@ -6,11 +6,6 @@ import numpy as np
 
 import geopandas as gpd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import numpy as np
-
-from pathlib import Path
-import time
 
 
 # ==========================================
@@ -63,16 +58,13 @@ def prepare_dataset(ds, variable):
     return da
 
 
-def load_world():
-    return gpd.read_file(WORLD_FILE)
-
-
-def get_boundary_coordinates(world):
+@st.cache_data(show_spinner=False)
+def get_boundary_coordinates(_world):
     """Convert GeoPandas boundaries to Plotly coordinates."""
 
     xs, ys = [], []
 
-    for geometry in world.geometry.boundary:
+    for geometry in _world.geometry.boundary:
 
         if geometry is None:
             continue
@@ -253,18 +245,17 @@ def create_map(
 @st.cache_resource
 def load_netcdf(path):
 
-    ds = xr.open_dataset(path)
-    ds.load()
-
-    return ds
+    with xr.open_dataset(path) as ds:
+        return ds.load()
 
 
 @st.cache_resource
 def load_world():
 
-    import geopandas as gpd
-
-    return gpd.read_file(WORLD_FILE)
+    world = gpd.read_file(WORLD_FILE)
+    # Reduce the size of Plotly boundary traces while retaining map detail.
+    world.geometry = world.geometry.simplify(0.05, preserve_topology=True)
+    return world
 
 
 # ==========================================

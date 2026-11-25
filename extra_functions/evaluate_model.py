@@ -16,16 +16,3 @@ def evaluate_predictions(y_true, y_pred):
         "MAE": mae,
         "R²": r2
     }
-
-
-def create_comparison_df(df, predictions):
-
-    result = pd.DataFrame({
-        "target_month": df["target_month"].values,
-        "y_true": df["y_true"].values,
-        "y_pred": predictions
-    })
-
-    result["error"] = result["y_pred"] - result["y_true"]
-
-    return result

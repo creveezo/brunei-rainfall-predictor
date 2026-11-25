@@ -3,14 +3,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import xarray as xr
 import joblib
-import traceback
 
 from extra_functions.reconstruct_rainfall_map import plot_rainfall_map
 from extra_functions.prepare_features import prepare_data
-from extra_functions.evaluate_model import (
-    evaluate_predictions,
-    create_comparison_df
-)
+from extra_functions.evaluate_model import evaluate_predictions
 from extra_functions.datasets_visualisation import (
     show_dataset_explorer,
     plot_explained_variance,
@@ -66,89 +62,13 @@ def make_predictions(X):
 # VISUALIZATION
 # ============================================================
 
-def show_prediction_map(pc_value, eof1, title):
-    anomaly = pc_value * eof1
-
-    st.subheader(title)
-    plot_rainfall_map(anomaly)
-
-
-def show_demo_results(df, predictions):
-    """
-    Displays model evaluation and comparison with actual values.
-    """
-
-    comparison = create_comparison_df(df, predictions)
-
-    # Metrics
-    metrics = evaluate_predictions(
-        comparison["y_true"],
-        comparison["y_pred"]
-    )
-
-    st.subheader("Model performance")
-
-    col1, col2, col3 = st.columns(3)
-
-    col1.metric("RMSE", f"{metrics['RMSE']:.3f}")
-    col2.metric("MAE", f"{metrics['MAE']:.3f}")
-    col3.metric("R²", f"{metrics['R²']:.3f}")
-
-    # Table
-    st.subheader("Predicted vs actual values")
-
-    st.dataframe(
-        comparison,
-        use_container_width=True
-    )
-
-    st.download_button(
-        "Download comparison CSV",
-        data=comparison.to_csv(index=False).encode("utf-8"),
-        file_name="rainfall_predictions.csv",
-        mime="text/csv"
-    )
-
-    # Time series
-    fig = go.Figure()
-
-    fig.add_trace(go.Scatter(
-        x=comparison["target_month"],
-        y=comparison["y_true"],
-        mode="lines+markers",
-        name="Actual"
-    ))
-
-    fig.add_trace(go.Scatter(
-        x=comparison["target_month"],
-        y=comparison["y_pred"],
-        mode="lines+markers",
-        name="Predicted"
-    ))
-
-    fig.update_layout(
-        title="Actual vs predicted rainfall PC1",
-        xaxis_title="Month",
-        yaxis_title="Rainfall PC1",
-        template="plotly_white",
-        height=450
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-    return comparison
-
-
 # ============================================================
 # MAIN INTERFACE
 # ============================================================
 
-tab_data, tab_prediction = st.tabs([
-    "📊 Data Explorer",
-    "🌧️ Rainfall Prediction"
-])
+page = st.sidebar.radio("Navigate", ["Data Explorer", "Rainfall Prediction"])
 
-with tab_data:
+if page == "Data Explorer":
 
     # 1. PROJECT OVERVIEW
     st.title("Data Explorer")
@@ -166,8 +86,7 @@ with tab_data:
 
     The main objective is to identify large-scale oceanic patterns
     that may be associated with changes in regional precipitation
-    and explore whether these patterns influence
-    precipitation anomalies in Brunei.
+    and explore their association with precipitation anomalies in Brunei.
     """)
 
     st.divider()
@@ -253,7 +172,7 @@ with tab_data:
 
     1. **Spatial selection** — retain the selected Indian and
        Pacific Ocean region.
-    2. **Monthly climatology** — calculate the average precipitation
+    2. **Monthly climatology** — calculate the average SST
        for each calendar month across the available years.
     3. **Anomaly calculation** — remove the seasonal climatology
        to focus on deviations from typical SST conditions.
@@ -457,31 +376,6 @@ with tab_data:
     st.divider()
 
 
-    # ============================================================
-    # 8. KEY FINDINGS
-    # ============================================================
-
-    st.header("Key Findings")
-
-    st.markdown("""
-    This section will summarize the main observations obtained
-    from the exploratory analysis.
-
-    """)
-
-    # PLACEHOLDER:
-    # Automatically generated or manually written findings:
-    # - Dominant precipitation variability pattern
-    # - Dominant SST variability patterns
-    # - Strongest SST–precipitation relationships
-    # - Most relevant time lags
-    # - Potential implications for precipitation prediction
-
-    st.info(
-        "The visualizations and statistical results presented here "
-        "are intended for exploratory analysis. Correlation does not "
-        "necessarily imply causation."
-    )
 
 
 
@@ -505,8 +399,8 @@ with tab_data:
 
 
 
-
-with tab_prediction:
+@st.fragment
+def show_prediction_page():
     st.title("Brunei Rainfall Predictor")
 
     st.write(
@@ -554,6 +448,10 @@ with tab_prediction:
     if df is not None:
         try:
             prepared_df, X = prepare_data(df)
+            input_id = pd.util.hash_pandas_object(prepared_df, index=True).sum()
+            if st.session_state.get("input_id") != input_id:
+                st.session_state.pop("results", None)
+                st.session_state["input_id"] = input_id
 
             st.subheader("Input data")
             st.dataframe(prepared_df, use_container_width=True)
@@ -568,15 +466,15 @@ with tab_prediction:
                 }
 
         except Exception as e:
+            st.session_state.pop("results", None)
             st.error(f"Error: {e}")
-            st.code(traceback.format_exc())
 
 
     # ============================================================
     # 3. RESULTS — MODE-DEPENDENT OUTPUT
     # ============================================================
 
-    results = st.session_state.get("results")
+    results = st.session_state.get("results") if df is not None else None
 
     if results is not None and results["mode"] == mode:
 
@@ -629,7 +527,7 @@ with tab_prediction:
 
             if comparison.empty:
                 st.error(
-                    "No matching dates found between demo_test.csv and y_true.csv."
+                    "No matching dates found between X_test.csv and y_true.csv."
                 )
                 st.stop()
 
@@ -744,7 +642,7 @@ with tab_prediction:
             col1, col2 = st.columns(2)
 
             with col1:
-                st.markdown("**Predicted rainfall anomaly**")
+                st.markdown("**Predicted EOF1 contribution**")
 
                 predicted_anomaly = selected["y_pred"] * eof1
 
@@ -754,7 +652,7 @@ with tab_prediction:
                 )
 
             with col2:
-                st.markdown("**Actual rainfall anomaly**")
+                st.markdown("**Observed EOF1 contribution**")
 
                 actual_anomaly = selected["y_true"] * eof1
 
@@ -902,3 +800,6 @@ with tab_prediction:
                 anomaly,
                 show_values=st.session_state["show_map_values"]
             )
+
+if page == "Rainfall Prediction":
+    show_prediction_page()

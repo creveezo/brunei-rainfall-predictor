@@ -34,10 +34,15 @@ def prepare_data(df):
 
     df = df.copy()
 
-    df["target_month"] = pd.to_datetime(
-        df["target_month"],
-        format="%Y-%m"
-    )
+    if df.empty:
+        raise ValueError("Input file must contain at least one row.")
+    dates = df["target_month"].astype(str).str.strip()
+    if not dates.str.fullmatch(r"\d{4}-\d{2}(-\d{2})?").all():
+        raise ValueError("target_month must use YYYY-MM or YYYY-MM-DD.")
+    dates = dates.where(dates.str.len() > 7, dates + "-01")
+    df["target_month"] = pd.to_datetime(dates, format="%Y-%m-%d")
+    for col in required_columns[1:]:
+        df[col] = pd.to_numeric(df[col], errors="raise")
 
     df = df.sort_values("target_month").reset_index(drop=True)
 
