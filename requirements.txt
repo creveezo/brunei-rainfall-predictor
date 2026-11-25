@@ -1,7 +1,7 @@
-streamlit
+streamlit>=1.37
 pandas
 numpy
-scikit-learn
+scikit-learn==1.6.1
 joblib
 xarray
 matplotlib
