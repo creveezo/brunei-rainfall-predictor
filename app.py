@@ -11,7 +11,12 @@ from extra_functions.evaluate_model import (
     evaluate_predictions,
     create_comparison_df
 )
-from extra_functions.datasets_visualisation import show_dataset_explorer
+from extra_functions.datasets_visualisation import (
+    show_dataset_explorer,
+    plot_explained_variance,
+    show_eof_pc_analysis,
+    show_correlation_analysis,
+)
 
 # ============================================================
 # CONFIG
@@ -277,7 +282,6 @@ with tab_data:
     observed over many years. An EOF analysis reduces this complex
     information into a smaller number of spatial patterns and
     corresponding time series.
-
     In this project, EOF analysis is applied to identify the
     dominant modes of precipitation and SST variability.
 
@@ -301,23 +305,17 @@ with tab_data:
     ### What are EOFs?
 
     EOFs (Empirical Orthogonal Functions) represent spatial patterns
-    of variability.
-
-    Each EOF describes how different geographical locations
-    contribute to a particular mode of variation.
-
-    For example, an EOF map may show whether precipitation
-    anomalies tend to vary in the same direction across Brunei
-    or whether different parts of the region exhibit contrasting
-    patterns.
+    of variability. Each EOF describes how different geographical locations
+    contribute to a particular mode of variation. For example, 
+    an EOF map may show whether precipitation anomalies tend to vary 
+    in the same direction across Brunei or whether different parts of 
+    the region exhibit contrasting patterns.
 
     ### What are PCs?
 
     PCs (Principal Components) are time series associated with
-    the corresponding EOF patterns.
-
-    A PC describes how strongly a particular spatial pattern
-    is expressed at each time step.
+    the corresponding EOF patterns. A PC describes how strongly 
+    a particular spatial pattern is expressed at each time step.
 
     For example:
     - A positive PC value indicates a positive expression
@@ -344,19 +342,7 @@ with tab_data:
         r"\frac{\sigma_k^2}{\sum_i \sigma_i^2} \times 100\%"
     )
 
-    # PLACEHOLDER:
-    # Explained variance bar chart:
-    # X-axis: EOF mode
-    # Y-axis: Explained variance (%)
-    #
-    # PLACEHOLDER:
-    # Cumulative explained variance line chart:
-    # X-axis: Number of EOF modes
-    # Y-axis: Cumulative explained variance (%)
-
-
     st.divider()
-
 
     # ============================================================
     # 5. PRECIPITATION EOF ANALYSIS
@@ -368,49 +354,30 @@ with tab_data:
     EOF analysis is applied to the processed precipitation anomalies
     over the Brunei study region.
 
-    The resulting EOF patterns describe the dominant spatial
-    structures of precipitation variability, while the corresponding
-    PCs show how these patterns evolve over time.
+    Each EOF mode represents a dominant spatial pattern of precipitation
+    variability, while its corresponding Principal Component (PC)
+    describes how this pattern evolves over time.
     """)
 
-    # PLACEHOLDER:
-    # Interactive EOF selector:
-    # Select EOF mode (EOF1–EOF10)
+    st.markdown("### Spatial Patterns and Temporal Variability")
 
-    # PLACEHOLDER:
-    # Selected precipitation EOF spatial map:
-    # Color scale: EOF loading
-    # Title: "Precipitation EOF [number]"
+    show_eof_pc_analysis()
 
-    # PLACEHOLDER:
-    # Corresponding precipitation PC time series:
-    # X-axis: Year
-    # Y-axis: Principal component amplitude
-
-    # PLACEHOLDER:
-    # Precipitation explained variance chart
-
-    st.subheader("EOF1 Reconstruction")
+    st.markdown("### Explained Variance")
 
     st.markdown("""
-    The first EOF mode can be used to reconstruct the contribution
-    of the dominant precipitation variability pattern at a selected
-    time step.
-
-    This reconstruction represents only the contribution of EOF1,
-    rather than the complete precipitation anomaly field.
+    The explained variance indicates how much of the total precipitation
+    variability is captured by each EOF mode. The first EOF mode represents 
+    the leading spatial pattern of precipitation variability.
     """)
 
-    st.latex(r"P'_1(x,y,t) = PC_1(t) \cdot EOF_1(x,y)")
-
-    # PLACEHOLDER:
-    # Interactive EOF1 reconstruction map:
-    # Select a month
-    # Display PC1(t) × EOF1(x, y)
-
+    plot_explained_variance(
+        csv_path="data/mswep_eof_variance_truncation.csv",
+        selected_modes=1,
+        title="MSWEP — Explained Variance",
+    )
 
     st.divider()
-
 
     # ============================================================
     # 6. SST EOF ANALYSIS
@@ -419,38 +386,56 @@ with tab_data:
     st.header("Sea Surface Temperature EOF Analysis")
 
     st.markdown("""
-    EOF analysis is also applied to SST anomalies across the
-    selected Indian and Pacific Ocean region.
+    EOF analysis is also applied to SST anomalies across the selected
+    Indian and Pacific Ocean region.
 
-    The resulting SST EOFs represent dominant oceanic variability
-    patterns. Their corresponding PCs provide time series that
-    describe the temporal evolution of these patterns.
+    The resulting EOF modes describe the dominant spatial patterns
+    of ocean temperature variability. Their corresponding PCs show
+    how these patterns evolve over time.
 
-    These SST principal components are used as potential predictors
+    These SST PCs are subsequently used as potential predictors
     in the precipitation prediction model.
     """)
 
-    # PLACEHOLDER:
-    # SST EOF selector:
-    # Select EOF mode (EOF1–EOF6 or more, depending on saved results)
+    st.markdown("### Spatial Patterns and Temporal Variability")
 
-    # PLACEHOLDER:
-    # Selected SST EOF spatial map:
-    # Color scale: SST EOF loading
+    show_eof_pc_analysis(SST=True)
 
-    # PLACEHOLDER:
-    # Corresponding SST PC time series
+    st.markdown("### Explained Variance")
 
-    # PLACEHOLDER:
-    # SST explained variance chart
+    st.markdown("""
+    The explained variance shows the proportion of total SST variability
+    captured by each EOF mode. This helps identify which modes account
+    for the largest contributions to oceanic variability.
+    """)
 
-    # PLACEHOLDER:
-    # SST PC1–PC6 overview:
-    # Six time series charts (2 columns × 3 rows)
-
+    plot_explained_variance(
+        csv_path="data/sst_eof_variance_truncation.csv",
+        selected_modes=6,
+        title="SST — Explained Variance",
+    )
 
     st.divider()
 
+    st.markdown("### Final Dataset")
+
+    st.markdown("""
+    The final dataset combines the first six principal components (PCs)
+    of Indian–Pacific SST anomalies with seasonal features.
+
+    The six SST PCs were selected as predictors. To account for seasonal 
+    effects,the calendar month was encoded using sine and cosine 
+    transformations of its monthly index.
+
+    The first precipitation principal component (PC1) was selected
+    as the target variable, representing the dominant mode of
+    precipitation variability over Brunei.
+    """)
+
+    st.latex(r"\text{month}_{\sin} = \sin\left(\frac{2\pi m}{12}\right)")
+    st.latex(r"\text{month}_{\cos} = \cos\left(\frac{2\pi m}{12}\right)")
+
+    st.divider()
 
     # ============================================================
     # 7. SST–PRECIPITATION RELATIONSHIPS
@@ -467,54 +452,7 @@ with tab_data:
     components and precipitation principal components.
     """)
 
-    st.subheader("Correlation Analysis")
-
-    st.markdown("""
-    Correlation analysis is used to measure the strength and
-    direction of linear relationships between SST PCs and
-    precipitation PCs.
-    """)
-
-    # PLACEHOLDER:
-    # Correlation matrix heatmap:
-    # Rows: SST PCs
-    # Columns: Precipitation PCs
-    # Values: Pearson correlation coefficient (r)
-
-    # PLACEHOLDER:
-    # Scatter plots:
-    # X-axis: SST PC
-    # Y-axis: Precipitation PC1
-    # Include regression line and correlation coefficient.
-
-    st.subheader("Lagged Correlation Analysis")
-
-    st.markdown("""
-    Oceanic variability may precede changes in regional precipitation.
-    Therefore, correlations are also examined at different time lags.
-
-    A positive lag indicates that SST variability occurs before
-    the corresponding precipitation variability.
-
-    For example:
-    - Lag 0: SST and precipitation in the same month.
-    - Lag 1: SST one month before precipitation.
-    - Lag 2: SST two months before precipitation.
-    - Lag 3: SST three months before precipitation.
-    """)
-
-    # PLACEHOLDER:
-    # Lagged correlation chart:
-    # X-axis: Lag (months)
-    # Y-axis: Pearson correlation coefficient (r)
-    # Separate lines for different SST PCs.
-
-    # PLACEHOLDER:
-    # Rolling correlation chart:
-    # X-axis: Year
-    # Y-axis: Rolling Pearson correlation coefficient (r)
-    # Window: [ADD WINDOW SIZE]
-
+    show_correlation_analysis()
 
     st.divider()
 
